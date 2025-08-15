@@ -7,7 +7,7 @@ const swaggerDocs = require("./swagger/swagger");
 const { initializeRedis } = require("./redis/redisClient");
 const { graphqlHTTP } = require("express-graphql");
 const { makeExecutableSchema } = require("@graphql-tools/schema");
-const typeDefs = require("./graphql/schema");
+const typeDefs = require("./graphql/typedefs");
 const resolvers = require("./graphql/resolvers");
 
 const {
@@ -67,7 +67,7 @@ app.use(
   graphqlHTTP({
     schema,
     graphiql: true,
-  }),
+  })
 );
 
 // Initialize Redis client

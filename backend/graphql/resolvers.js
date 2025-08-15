@@ -2,7 +2,16 @@ const { firestore } = require("../services/services");
 
 /**
  * Resolvers for the GraphQL schema
- * @type {{Query: {getUser(*, {id: *}): Promise<{[p: string]: FirebaseFirestore.DocumentFieldValue, id: *}>, getDocument(*, {userId: *, docId: *}): Promise<*>, listDocuments(*, {userId: *}): Promise<*>}, Mutation: {createUser(*, {email: *, password: *}): Promise<{id: string, email: *, createdAt: string, documents: []}>, deleteDocument(*, {userId: *, docId: *}): Promise<boolean>, updateDocumentTitle(*, {userId: *, docId: *, title: *}): Promise<*>}}} Resolvers for the GraphQL schema
+ * @type {{
+ * Query: {
+ *  getUser(*, {id: *}): Promise<{[p: string]: FirebaseFirestore.DocumentFieldValue, id: *}>,
+ *  getDocument(*, {userId: *, docId: *}): Promise<*>,
+ *  listDocuments(*, {userId: *}): Promise<*>
+ * },
+ * Mutation: {
+ *  createUser(*, {email: *, password: *}): Promise<{id: string, email: *, createdAt: string, documents: []}>,
+ *  deleteDocument(*, {userId: *, docId: *}): Promise<boolean>,
+ *  updateDocumentTitle(*, {userId: *, docId: *, title: *}): Promise<*>}}} Resolvers for the GraphQL schema
  */
 const resolvers = {
   Query: {

@@ -13,6 +13,8 @@ import {
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import {signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../firebase";
 
 const Login = ({ theme, onLogin }) => {
   const [email, setEmail] = useState("");
@@ -26,7 +28,28 @@ const Login = ({ theme, onLogin }) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+    // try {
+    //   // Set a timeout for Firebase signInWithEmailAndPassword (10s)
+    //   await Promise.race([
+    //   signInWithEmailAndPassword(auth, email, password).then((userCredential) => {
+    //     // Signed in 
+    //     const user = userCredential.user;
+    //     console.log(user);
+    //   }),
+    //   new Promise((_, reject) =>
+    //     setTimeout(() => reject(new Error("Login timeout, please try again.")), 10000)
+    //   ),
+    //   ]);
+    // } catch (error) {
+    //   const errorCode = error.code || "";
+    //   const errorMessage = error.message || "";
+    //   setError(errorCode + errorMessage);
+    //   setLoading(false);
+    //   return;
+    // }
+
     try {
+      
       const response = await axios.post(
         "https://docuthinker-app-backend-api.vercel.app/login",
         { email, password },

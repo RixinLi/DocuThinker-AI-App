@@ -7,7 +7,7 @@ const initializeRedis = async () => {
     redisClient = redis.createClient({
       url: process.env.REDIS_URL,
       socket: {
-        tls: true,
+        // tls: true,
         rejectUnauthorized: false,
       },
     });

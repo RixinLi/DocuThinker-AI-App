@@ -108,7 +108,7 @@ exports.processAudio = async (file, context) => {
   // Accept both "audio/wav", "audio/wave", and "audio/mp3" formats
   if (!["audio/wav", "audio/wave", "audio/mp3"].includes(mimeType)) {
     throw new Error(
-      "Unsupported audio format. Please upload a WAV or MP3 file.",
+      "Unsupported audio format. Please upload a WAV or MP3 file."
     );
   }
 
@@ -454,7 +454,7 @@ exports.generateActionableRecommendations = async (documentText) => {
 
   if (!result.response || !result.response.text) {
     throw new Error(
-      "Failed to generate actionable recommendations using the AI",
+      "Failed to generate actionable recommendations using the AI"
     );
   }
 

@@ -20,6 +20,8 @@ const { sendErrorResponse, sendSuccessResponse } = require("../views/views");
 const { IncomingForm } = require("formidable");
 const { v4: uuidv4 } = require("uuid");
 const firebaseAdmin = require("firebase-admin");
+const axios = require("axios");
+require("dotenv").config();
 
 /**
  * @swagger
@@ -101,8 +103,16 @@ exports.registerUser = async (req, res) => {
  *         description: Invalid credentials
  */
 exports.loginUser = async (req, res) => {
-  const { email } = req.body;
+  const { email, password } = req.body;
   try {
+    // console.log(email, password);
+
+    // 尝试登录，如果密码错误，axios会抛出异常
+    await axios.post(
+      `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${process.env.FIREBASE_WEB_API_KEY}`,
+      { email, password, returnSecureToken: true }
+    );
+
     const customToken = await loginUser(email);
     const user = await firebaseAdmin.auth().getUserByEmail(email); // Fetch user details
 
@@ -111,7 +121,12 @@ exports.loginUser = async (req, res) => {
       userId: user.uid, // Send back userId
     });
   } catch (error) {
-    sendErrorResponse(res, 401, "Invalid credentials", error.message);
+    // axios error on password checking error.response.status
+    if (error.response && error.response.status === 400) {
+      sendErrorResponse(res, 400, "Password is not correct", error.message);
+    } else {
+      sendErrorResponse(res, 401, "Invalid credentials", error.message);
+    }
   }
 };
 
@@ -159,7 +174,7 @@ exports.uploadDocument = async (req, res) => {
       return sendErrorResponse(
         res,
         400,
-        "Missing title or text in request body",
+        "Missing title or text in request body"
       );
     }
 
@@ -332,7 +347,7 @@ exports.generateDiscussionPoints = async (req, res) => {
       res,
       500,
       "Failed to generate discussion points",
-      error.message,
+      error.message
     );
   }
 };
@@ -626,7 +641,7 @@ exports.getDocumentDetails = async (req, res) => {
       res,
       500,
       "Failed to retrieve document details",
-      error.message,
+      error.message
     );
   }
 };
@@ -761,7 +776,7 @@ exports.deleteDocument = async (req, res) => {
 
     const userData = userDoc.data();
     const updatedDocuments = userData.documents.filter(
-      (doc) => doc.id !== docId,
+      (doc) => doc.id !== docId
     );
 
     await firestore.collection("users").doc(userId).update({
@@ -950,7 +965,7 @@ exports.getDaysSinceJoined = async (req, res) => {
       res,
       500,
       "Failed to retrieve days since joined",
-      error.message,
+      error.message
     );
   }
 };
@@ -999,7 +1014,7 @@ exports.getDocumentCount = async (req, res) => {
       res,
       500,
       "Failed to retrieve document count",
-      error.message,
+      error.message
     );
   }
 };
@@ -1092,7 +1107,7 @@ exports.updateDocumentTitle = async (req, res) => {
 
     const userData = userDoc.data();
     const documentIndex = userData.documents.findIndex(
-      (doc) => doc.id === docId,
+      (doc) => doc.id === docId
     );
 
     if (documentIndex === -1) {
@@ -1113,7 +1128,7 @@ exports.updateDocumentTitle = async (req, res) => {
       res,
       500,
       "Failed to update document title",
-      error.message,
+      error.message
     );
   }
 };
@@ -1182,7 +1197,7 @@ exports.getUserJoinedDate = async (req, res) => {
       res,
       500,
       "Failed to retrieve user joined date",
-      error.message,
+      error.message
     );
   }
 };
@@ -1231,7 +1246,7 @@ exports.updateTheme = async (req, res) => {
     return sendErrorResponse(
       res,
       400,
-      'Invalid theme. Theme must be either "light" or "dark".',
+      'Invalid theme. Theme must be either "light" or "dark".'
     );
   }
 
@@ -1315,7 +1330,7 @@ exports.getSocialMedia = async (req, res) => {
       res,
       500,
       "Failed to retrieve social media links",
-      error.message,
+      error.message
     );
   }
 };
@@ -1388,7 +1403,7 @@ exports.updateSocialMedia = async (req, res) => {
       res,
       500,
       "Failed to update social media links",
-      error.message,
+      error.message
     );
   }
 };
@@ -1570,7 +1585,7 @@ exports.summaryInLanguage = async (req, res) => {
 
     const translatedSummary = await generateSummaryInLanguage(
       documentText,
-      language,
+      language
     );
 
     res.status(200).send({ summary: translatedSummary });

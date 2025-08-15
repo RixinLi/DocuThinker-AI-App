@@ -32,6 +32,21 @@ const resolvers = {
     },
 
     /**
+     * learning graphQL
+     * Get CustomUser
+     * @param _ Parent object
+     * @param id - Custom ID
+     * @returns {Promise<{[p:string]:FirebaseFirestore.DocumentFieldValue,id: *}>} User object
+     */
+    async getCustomUser(_, { id }) {
+      const CustomUserDoc = await firestore.collection("users").doc(id).get();
+      if (!CustomUserDoc.exists) {
+        throw new Error("CustomUser not found");
+      }
+      return { id, ...CustomUserDoc.data() };
+    },
+
+    /**
      * Get document by user ID and document ID
      * @param _ - Parent object
      * @param userId - User ID

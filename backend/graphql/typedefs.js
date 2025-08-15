@@ -17,8 +17,14 @@ const typeDefs = `
     originalText: String!
   }
 
+  type CustomUser{
+    id: ID!
+    email: String
+  }
+
   type Query {
     getUser(id: ID!): User
+    getCustomUser(id: ID!): CustomUser
     getDocument(userId: ID!, docId: ID!): Document
     listDocuments(userId: ID!): [Document!]
   }

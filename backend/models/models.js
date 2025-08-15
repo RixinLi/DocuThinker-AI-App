@@ -1,6 +1,4 @@
-const firebaseAdmin = require("firebase-admin");
-const firestore = firebaseAdmin.firestore();
-
+const { firestore } = require("../services/services");
 /**
  * @swagger
  * components:
@@ -180,7 +178,7 @@ const Document = {
     const documents = userDoc
       .data()
       .documents.map((doc) =>
-        doc.id === docId ? { ...doc, title: newTitle } : doc,
+        doc.id === docId ? { ...doc, title: newTitle } : doc
       );
 
     await firestore.collection("users").doc(userId).update({ documents });

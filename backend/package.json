@@ -62,6 +62,9 @@
     "uuid": "^10.0.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.28.3",
+    "@babel/preset-env": "^7.28.3",
+    "babel-jest": "^30.0.5",
     "eslint": "^8",
     "nodemon": "^3.1.7"
   }

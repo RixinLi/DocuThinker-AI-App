@@ -33,6 +33,12 @@ if ! command -v npm &> /dev/null; then
     exit 1
 fi
 
+# Check if docker is installed
+if ! command -v docker &> /dev/null; then
+    echo -e "${RED}Docker is not installed. Please install it first. ${NC}"
+    exit 1
+fi
+
 # Handle script arguments
 case "$1" in
     install)

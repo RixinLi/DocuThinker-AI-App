@@ -9,6 +9,7 @@ const {
   FileState,
 } = require("@google/generative-ai/server");
 require("dotenv").config();
+const axios = require("axios");
 
 // Parse the private key (ensuring it's correctly formatted)
 const privateKey = process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n");
@@ -57,9 +58,15 @@ exports.createUser = async (email, password) => {
 /**
  * Login user and generate custom token
  * @param email - User email
+ * @param password - User password
  * @returns {Promise<string>} - Custom token for the user
  */
-exports.loginUser = async (email) => {
+exports.loginUser = async (email, password) => {
+  // 尝试登录，如果密码错误，axios会抛出异常
+  await axios.post(
+    `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${process.env.FIREBASE_WEB_API_KEY}`,
+    { email, password, returnSecureToken: true }
+  );
   const user = await firebaseAdmin.auth().getUserByEmail(email);
   return await firebaseAdmin.auth().createCustomToken(user.uid);
 };

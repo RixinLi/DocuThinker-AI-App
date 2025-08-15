@@ -23,6 +23,9 @@ const firebaseAdmin = require("firebase-admin");
 const axios = require("axios");
 require("dotenv").config();
 
+// Models for User and Document
+const { User, Document } = require("../models/models");
+
 /**
  * @swagger
  * /register:
@@ -58,12 +61,13 @@ exports.registerUser = async (req, res) => {
 
     console.log(`User created in Firebase Auth: ${userRecord.uid}`);
 
-    // Create a user document in Firestore with email, empty documents list, and the creation date
-    await firestore.collection("users").doc(userRecord.uid).set({
-      email: email,
-      documents: [],
-      createdAt: creationDate,
-    });
+    // Use model to create a user document in Firestore with email, empty documents list, and the creation date
+    // await firestore.collection("users").doc(userRecord.uid).set({
+    //   email: email,
+    //   documents: [],
+    //   createdAt: creationDate,
+    // });
+    await User.create(userRecord.uid, email, creationDate);
 
     console.log("Firestore user document created successfully");
     sendSuccessResponse(res, 201, "User registered successfully", {
@@ -105,15 +109,7 @@ exports.registerUser = async (req, res) => {
 exports.loginUser = async (req, res) => {
   const { email, password } = req.body;
   try {
-    // console.log(email, password);
-
-    // 尝试登录，如果密码错误，axios会抛出异常
-    await axios.post(
-      `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${process.env.FIREBASE_WEB_API_KEY}`,
-      { email, password, returnSecureToken: true }
-    );
-
-    const customToken = await loginUser(email);
+    const customToken = await loginUser(email, password);
     const user = await firebaseAdmin.auth().getUserByEmail(email); // Fetch user details
 
     sendSuccessResponse(res, 200, "Custom token generated", {

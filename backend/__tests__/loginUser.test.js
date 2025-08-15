@@ -2,6 +2,7 @@ const { loginUser: loginController } = require("../controllers/controllers");
 const { loginUser } = require("../services/services");
 const firebaseAdmin = require("firebase-admin");
 const { sendSuccessResponse, sendErrorResponse } = require("../views/views");
+// 在测试文件里引入它
 
 jest.mock("../services/services", () => ({
   loginUser: jest.fn(),
@@ -22,7 +23,7 @@ describe("loginUser", () => {
   let req, res;
 
   beforeEach(() => {
-    req = { body: { email: "x@y.com" } };
+    req = { body: { email: "x@y.com", password: "x@yPassWord" } };
     res = {};
     loginUser.mockClear();
     mockGetUserByEmail.mockClear();
@@ -36,13 +37,13 @@ describe("loginUser", () => {
 
     await loginController(req, res);
 
-    expect(loginUser).toHaveBeenCalledWith("x@y.com");
+    expect(loginUser).toHaveBeenCalledWith("x@y.com", "x@yPassWord");
     expect(mockGetUserByEmail).toHaveBeenCalledWith("x@y.com");
     expect(sendSuccessResponse).toHaveBeenCalledWith(
       res,
       200,
       "Custom token generated",
-      { customToken: "TOKEN123", userId: "UID99" },
+      { customToken: "TOKEN123", userId: "UID99" }
     );
   });
 
@@ -55,7 +56,7 @@ describe("loginUser", () => {
       res,
       401,
       "Invalid credentials",
-      "bad creds",
+      "bad creds"
     );
   });
 });

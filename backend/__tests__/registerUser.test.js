@@ -1,5 +1,6 @@
 const { registerUser } = require("../controllers/controllers");
 const { createUser, firestore } = require("../services/services");
+const { User, Document } = require("../models/models");
 const { sendSuccessResponse, sendErrorResponse } = require("../views/views");
 
 jest.mock("../services/services", () => ({
@@ -13,6 +14,13 @@ jest.mock("../views/views", () => ({
   sendErrorResponse: jest.fn(),
 }));
 
+// mock User.create
+// jest.mock("../models/models", () => ({
+//   User: {
+//     create: jest.fn(),
+//   },
+// }));
+
 describe("registerUser", () => {
   let req, res, fakeCollection, fakeDoc;
 
@@ -22,6 +30,7 @@ describe("registerUser", () => {
     fakeDoc = { set: jest.fn().mockResolvedValue() };
     fakeCollection = { doc: jest.fn().mockReturnValue(fakeDoc) };
     firestore.collection.mockReturnValue(fakeCollection);
+    // User.create.mockClear();
     createUser.mockResolvedValue({ uid: "USER_ID" });
     sendSuccessResponse.mockClear();
     sendErrorResponse.mockClear();
@@ -30,19 +39,24 @@ describe("registerUser", () => {
   it("calls createUser and writes to Firestore, then sends success", async () => {
     await registerUser(req, res);
     expect(createUser).toHaveBeenCalledWith("a@b.com", "pass123");
+    // expect(User.create).toHaveBeenCalledWith(
+    //   "USER_ID",
+    //   "a@b.com",
+    //   expect.any(Date)
+    // );
     expect(firestore.collection).toHaveBeenCalledWith("users");
     expect(fakeDoc.set).toHaveBeenCalledWith(
       expect.objectContaining({
         email: "a@b.com",
         documents: [],
         createdAt: expect.any(Date),
-      }),
+      })
     );
     expect(sendSuccessResponse).toHaveBeenCalledWith(
       res,
       201,
       "User registered successfully",
-      { userId: "USER_ID" },
+      { userId: "USER_ID" }
     );
   });
 
@@ -53,7 +67,7 @@ describe("registerUser", () => {
       res,
       400,
       "User registration failed",
-      "oops",
+      "oops"
     );
   });
 });

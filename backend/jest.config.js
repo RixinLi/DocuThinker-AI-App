@@ -11,4 +11,10 @@ module.exports = {
   coverageDirectory: "<rootDir>/coverage",
   // If you use Babel or need module aliasing, configure here
   // transform: { '^.+\\.js$': 'babel-jest' },
+  transform: {
+    "^.+\\.[jt]sx?$": "babel-jest",
+  },
+  transformIgnorePatterns: [
+    "node_modules/(?!(axios)/)", // 让 axios 也走 Babel
+  ],
 };

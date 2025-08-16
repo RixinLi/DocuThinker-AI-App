@@ -2,9 +2,9 @@ name: CI/CD Pipeline for DocuThinker App
 
 on:
   push:
-    branches: [master]
+    branches: [master,Rixin-contribution]
   pull_request:
-    branches: [master]
+    branches: [master,Rixin-contribution]
 
 ################################################################################
 # 1 · Formatting & Lint 🔧

@@ -89,19 +89,19 @@ const Profile = ({ theme }) => {
       const fetchData = async () => {
         try {
           const emailResponse = await axios.get(
-            `https://docuthinker-app-backend-api.vercel.app/users/${userId}`,
+            `${process.env.REACT_APP_BACKEND_URL}/users/${userId}`,
           );
           const daysResponse = await axios.get(
-            `https://docuthinker-app-backend-api.vercel.app/days-since-joined/${userId}`,
+            `${process.env.REACT_APP_BACKEND_URL}/days-since-joined/${userId}`,
           );
           const documentResponse = await axios.get(
-            `https://docuthinker-app-backend-api.vercel.app/document-count/${userId}`,
+            `${process.env.REACT_APP_BACKEND_URL}/document-count/${userId}`,
           );
           const joinedDateResponse = await axios.get(
-            `https://docuthinker-app-backend-api.vercel.app/user-joined-date/${userId}`,
+            `${process.env.REACT_APP_BACKEND_URL}/user-joined-date/${userId}`,
           );
           const socialMediaResponse = await axios.get(
-            `https://docuthinker-app-backend-api.vercel.app/social-media/${userId}`,
+            `${process.env.REACT_APP_BACKEND_URL}/social-media/${userId}`,
           );
 
           if (
@@ -145,7 +145,7 @@ const Profile = ({ theme }) => {
 
     try {
       await axios.post(
-        "https://docuthinker-app-backend-api.vercel.app/update-email",
+        "${process.env.REACT_APP_BACKEND_URL}/update-email",
         {
           userId,
           newEmail,
@@ -190,7 +190,7 @@ const Profile = ({ theme }) => {
       };
 
       await axios.post(
-        "https://docuthinker-app-backend-api.vercel.app/update-social-media",
+        "${process.env.REACT_APP_BACKEND_URL}/update-social-media",
         {
           userId,
           ...socialMediaToSend, // Spread the updated social media object

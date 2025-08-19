@@ -186,7 +186,7 @@ const Home = ({ theme }) => {
     setLoadingRefinement(true);
     try {
       const response = await axios.post(
-        "https://docuthinker-app-backend-api.vercel.app/refine-summary",
+        `${process.env.REACT_APP_BACKEND_URL}/refine-summary`,
         {
           summary,
           refinementInstructions,
@@ -217,7 +217,7 @@ const Home = ({ theme }) => {
     try {
       setLoadingAudio(true);
       const response = await axios.post(
-        "https://docuthinker-app-backend-api.vercel.app/process-audio",
+        `${process.env.REACT_APP_BACKEND_URL}/process-audio`,
         formData,
         {
           headers: {
@@ -242,7 +242,7 @@ const Home = ({ theme }) => {
     setLoadingRecommendations(true);
     try {
       const response = await axios.post(
-        "https://docuthinker-app-backend-api.vercel.app/actionable-recommendations",
+        `${process.env.REACT_APP_BACKEND_URL}/actionable-recommendations`,
         {
           documentText: originalText,
         },
@@ -265,7 +265,7 @@ const Home = ({ theme }) => {
     setLoadingRewrite(true);
     try {
       const response = await axios.post(
-        "https://docuthinker-app-backend-api.vercel.app/content-rewriting",
+        `${process.env.REACT_APP_BACKEND_URL}/content-rewriting`,
         {
           documentText: originalText,
           style: desiredStyle,
@@ -316,7 +316,7 @@ const Home = ({ theme }) => {
     setLoadingLanguage(true);
     try {
       const response = await axios.post(
-        "https://docuthinker-app-backend-api.vercel.app/summary-in-language",
+        `${process.env.REACT_APP_BACKEND_URL}/summary-in-language`,
         {
           documentText: originalText,
           language,
@@ -339,7 +339,7 @@ const Home = ({ theme }) => {
     setLoadingSentiment(true); // Start loading
     try {
       const response = await axios.post(
-        "https://docuthinker-app-backend-api.vercel.app/sentiment-analysis",
+        `${process.env.REACT_APP_BACKEND_URL}/sentiment-analysis`,
         {
           documentText: text,
         },
@@ -394,7 +394,7 @@ const Home = ({ theme }) => {
     setLoadingKeyIdeas(true);
     try {
       const response = await axios.post(
-        "https://docuthinker-app-backend-api.vercel.app/generate-key-ideas",
+        `${process.env.REACT_APP_BACKEND_URL}/generate-key-ideas`,
         {
           documentText: originalText,
         },
@@ -414,7 +414,7 @@ const Home = ({ theme }) => {
     setLoadingDiscussionPoints(true);
     try {
       const response = await axios.post(
-        "https://docuthinker-app-backend-api.vercel.app/generate-discussion-points",
+        `${process.env.REACT_APP_BACKEND_URL}/generate-discussion-points`,
         {
           documentText: originalText,
         },
@@ -436,7 +436,7 @@ const Home = ({ theme }) => {
     setLoadingBulletSummary(true);
     try {
       const response = await axios.post(
-        "https://docuthinker-app-backend-api.vercel.app/bullet-summary",
+        `${process.env.REACT_APP_BACKEND_URL}/bullet-summary`,
         {
           documentText: originalText,
         },

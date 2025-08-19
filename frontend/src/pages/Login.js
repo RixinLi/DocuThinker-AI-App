@@ -51,7 +51,7 @@ const Login = ({ theme, onLogin }) => {
     try {
       
       const response = await axios.post(
-        "https://docuthinker-app-backend-api.vercel.app/login",
+        `${process.env.REACT_APP_BACKEND_URL}/login`,
         { email, password },
         {
           headers: {

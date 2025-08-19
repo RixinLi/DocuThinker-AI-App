@@ -183,7 +183,7 @@ const UploadModal = ({
 
       // Send the extracted text to the backend endpoint
       const response = await axios.post(
-        "https://docuthinker-app-backend-api.vercel.app/upload",
+        `${process.env.REACT_APP_BACKEND_URL}//upload`,
         payload,
       );
       setLoading(false);

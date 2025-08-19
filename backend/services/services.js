@@ -3,6 +3,7 @@ const fs = require("fs");
 const pdfParse = require("pdf-parse");
 const mammoth = require("mammoth");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { OpenAI } = require("openai");
 const multer = require("multer");
 const {
   GoogleAIFileManager,
@@ -10,6 +11,7 @@ const {
 } = require("@google/generative-ai/server");
 require("dotenv").config();
 const axios = require("axios");
+const { content } = require("googleapis/build/src/apis/content");
 
 // Parse the private key (ensuring it's correctly formatted)
 const privateKey = process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n");
@@ -81,23 +83,55 @@ exports.loginUser = async (email, password) => {
 exports.generateSummary = async (text) => {
   if (!text) throw new Error("No text provided");
 
-  const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
-  const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash",
-    systemInstruction: `${process.env.AI_INSTRUCTIONS}. Your task now is to: Summarize the provided document text in paragraphs (not bullet points).`,
+  // Old google generative ai
+  // const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
+  // const model = genAI.getGenerativeModel({
+  //   model: "gemini-1.5-flash",
+  //   systemInstruction: `${process.env.AI_INSTRUCTIONS}. Your task now is to: Summarize the provided document text in paragraphs (not bullet points).`,
+  // });
+
+  // const chatSession = model.startChat({
+  //   history: [{ role: "user", parts: [{ text }] }],
+  // });
+  // const result = await chatSession.sendMessage(text);
+
+  // if (!result.response || !result.response.text) {
+  //   throw new Error("Failed to generate a summary from the AI");
+  // }
+
+  // return {
+  //   summary: result.response.text(),
+  //   originalText: text,
+  // };
+
+  // Now Deepseek generative ai
+  const client = new OpenAI({
+    apiKey: process.env.DEEPSEEK_API_KEY,
+    baseURL: process.env.DEEPSEEK_URL,
   });
 
-  const chatSession = model.startChat({
-    history: [{ role: "user", parts: [{ text }] }],
-  });
-  const result = await chatSession.sendMessage(text);
+  // 调用deepseek-chat 模型
 
-  if (!result.response || !result.response.text) {
-    throw new Error("Failed to generate a summary from the AI");
+  const completion = await client.chat.completions.create({
+    model: "deepseek-chat",
+    messages: [
+      {
+        role: "system",
+        content: `${process.env.AI_INSTRUCTIONS}. Your task now is to: Summarize the provided document text in paragraphs (not bullet points).`,
+      },
+      {
+        role: "user",
+        content: text,
+      },
+    ],
+  });
+
+  const summary = completion.choices[0]?.message?.content?.trim();
+  if (!summary) {
+    throw new Error("Failed to generate a summary from DeepSeek AI");
   }
-
   return {
-    summary: result.response.text(),
+    summary,
     originalText: text,
   };
 };

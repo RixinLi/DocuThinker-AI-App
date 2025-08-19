@@ -2,9 +2,9 @@ name: CI/CD Pipeline for DocuThinker App
 
 on:
   push:
-    branches: [master,Rixin-contribution]
+    branches: [Rixin-contribution]
   pull_request:
-    branches: [master,Rixin-contribution]
+    branches: [Rixin-contribution]
 
 ################################################################################
 # 1 · Formatting & Lint 🔧
@@ -128,6 +128,10 @@ jobs:
           echo "🔄 Deploying frontend to Vercel..."
           sleep 2
           echo "✅ Frontend deployed to Vercel!"
+      - name: Deploy to vercel production
+        run: |
+          run: curl -X POST ${{secrets.VERCEL_BACKEND_DEPLOY_HOOK_URL}}
+          run: curl -X POST ${{secrets.VERCEL_FRONTEND_DEPLOY_HOOK_URL}}
 
   ################################################################################
   # 6 · All Done 🎉

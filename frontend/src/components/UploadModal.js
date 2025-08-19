@@ -17,13 +17,16 @@ import GoogleDriveFileSelectorModal from "./GoogleDriveFileSelectorModal";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
 import mammoth from "mammoth";
 
+
+/* global google */
+
 // Set the PDF.js worker source to a local copy served from your public folder
 pdfjsLib.GlobalWorkerOptions.workerSrc = `${process.env.PUBLIC_URL || ""}/pdf.worker.min.mjs`;
 
 // Google API constants
 const SCOPES = "https://www.googleapis.com/auth/drive.readonly";
 const DISCOVERY_DOCS = [
-  "https://www.googleapis.com/discovery/v1/apis/drive/v3/rest",
+  "https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"
 ];
 
 const UploadModal = ({
@@ -46,30 +49,64 @@ const UploadModal = ({
   const [openSnackbar, setOpenSnackbar] = useState(false);
 
   // Initialize Google API client
+  // const initClient = () => {
+  //   return new Promise((resolve, reject) => {
+  //     gapi.load("client:auth2", () => {
+  //       gapi.client
+  //         .init({
+  //           apiKey: process.env.REACT_APP_GOOGLE_DRIVE_API_KEY,
+  //           clientId: process.env.REACT_APP_GOOGLE_DRIVE_CLIENT_ID,
+  //           discoveryDocs: DISCOVERY_DOCS,
+  //           scope: SCOPES,
+  //         })
+  //         .then(() => {
+  //           const authInstance = gapi.auth2.getAuthInstance();
+  //           setGoogleAuth(authInstance);
+  //           setIsGoogleAuthReady(true);
+  //           resolve();
+  //         })
+  //         .catch((error) => {
+  //           console.error("Error initializing GAPI:", error);
+  //           setErrorMessage(
+  //             "Google API initialization failed: " + error.message,
+  //           );
+  //           setOpenSnackbar(true);
+  //           reject(error);
+  //         });
+  //     });
+  //   });
+  // };
+
+  let tokenClient;
+
   const initClient = () => {
     return new Promise((resolve, reject) => {
-      gapi.load("client:auth2", () => {
-        gapi.client
-          .init({
+      gapi.load("client", async () => {
+        try {
+          // 初始化 API 客户端
+          await gapi.client.init({
             apiKey: process.env.REACT_APP_GOOGLE_DRIVE_API_KEY,
-            clientId: process.env.REACT_APP_GOOGLE_DRIVE_CLIENT_ID,
-            discoveryDocs: DISCOVERY_DOCS,
+            discoveryDocs: DISCOVERY_DOCS
+          });
+
+          // 初始化 GIS 授权客户端
+          tokenClient = google.accounts.oauth2.initTokenClient({
+            client_id: process.env.REACT_APP_GOOGLE_DRIVE_CLIENT_ID,
             scope: SCOPES,
-          })
-          .then(() => {
-            const authInstance = gapi.auth2.getAuthInstance();
-            setGoogleAuth(authInstance);
-            setIsGoogleAuthReady(true);
-            resolve();
-          })
-          .catch((error) => {
-            console.error("Error initializing GAPI:", error);
-            setErrorMessage(
+            callback: (tokenResponse) => {
+              console.log("Access Token:", tokenResponse.access_token);
+              resolve();
+            }
+          });
+
+        } catch (error) {
+          console.error("Error initializing GAPI:", error);
+          setErrorMessage(
               "Google API initialization failed: " + error.message,
             );
-            setOpenSnackbar(true);
-            reject(error);
-          });
+          setOpenSnackbar(true);
+          reject(error);
+        }
       });
     });
   };
@@ -183,7 +220,7 @@ const UploadModal = ({
 
       // Send the extracted text to the backend endpoint
       const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}//upload`,
+        `${process.env.REACT_APP_BACKEND_URL}/upload`,
         payload,
       );
       setLoading(false);

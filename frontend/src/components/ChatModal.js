@@ -315,7 +315,7 @@ const ChatModal = ({ theme }) => {
     try {
       setLoading(true);
       const res = await axios.post(
-        "https://docuthinker-app-backend-api.vercel.app/chat",
+        `${process.env.REACT_APP_BACKEND_URL}/chat`,
         { message, originalText, sessionId },
       );
       setLoading(false);

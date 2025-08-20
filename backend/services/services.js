@@ -12,6 +12,7 @@ const {
 require("dotenv").config();
 const axios = require("axios");
 const { content } = require("googleapis/build/src/apis/content");
+const { ErrorReply } = require("redis");
 
 // Parse the private key (ensuring it's correctly formatted)
 const privateKey = process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n");
@@ -210,17 +211,45 @@ exports.processAudio = async (file, context) => {
  * @returns {Promise<string>} - Generated key ideas
  */
 exports.generateKeyIdeas = async (documentText) => {
-  const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
-  const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash",
-    systemInstruction: `${process.env.AI_INSTRUCTIONS}. Your task now is to: Generate key ideas from the provided text.`,
+  // old google generatative ai
+  // const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
+  // const model = genAI.getGenerativeModel({
+  //   model: "gemini-1.5-flash",
+  //   systemInstruction: `${process.env.AI_INSTRUCTIONS}. Your task now is to: Generate key ideas from the provided text.`,
+  // });
+
+  // const chatSession = model.startChat({
+  //   history: [{ role: "user", parts: [{ text: documentText }] }],
+  // });
+  // const result = await chatSession.sendMessage(documentText);
+  // return result.response.text();
+
+  // new Deepseek api
+  const client = new OpenAI({
+    apiKey: process.env.DEEPSEEK_API_KEY,
+    baseURL: process.env.DEEPSEEK_URL,
   });
 
-  const chatSession = model.startChat({
-    history: [{ role: "user", parts: [{ text: documentText }] }],
+  const completion = await client.chat.completions.create({
+    model: "deepseek-chat",
+    messages: [
+      {
+        role: "system",
+        content: `${process.env.AI_INSTRUCTIONS}. Your task now is to: Generate key ideas from the provided text.`,
+      },
+      {
+        role: "user",
+        content: documentText,
+      },
+    ],
   });
-  const result = await chatSession.sendMessage(documentText);
-  return result.response.text();
+
+  const response = completion.choices[0]?.message?.content?.trim();
+  if (!response) {
+    throw new Error("Failed to generate key ideas from Deepseek AI");
+  }
+
+  return response;
 };
 
 /**
@@ -229,17 +258,44 @@ exports.generateKeyIdeas = async (documentText) => {
  * @returns {Promise<string>} - Generated discussion points
  */
 exports.generateDiscussionPoints = async (documentText) => {
-  const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
-  const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash",
-    systemInstruction: `${process.env.AI_INSTRUCTIONS}. Your task now is to: Generate discussion points from the provided text.`,
+  // const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
+  // const model = genAI.getGenerativeModel({
+  //   model: "gemini-1.5-flash",
+  //   systemInstruction: `${process.env.AI_INSTRUCTIONS}. Your task now is to: Generate discussion points from the provided text.`,
+  // });
+
+  // const chatSession = model.startChat({
+  //   history: [{ role: "user", parts: [{ text: documentText }] }],
+  // });
+  // const result = await chatSession.sendMessage(documentText);
+  // return result.response.text();
+
+  // new Deepseek api
+  const client = new OpenAI({
+    apiKey: process.env.DEEPSEEK_API_KEY,
+    baseURL: process.env.DEEPSEEK_URL,
   });
 
-  const chatSession = model.startChat({
-    history: [{ role: "user", parts: [{ text: documentText }] }],
+  const completion = await client.chat.completions.create({
+    model: "deepseek-chat",
+    messages: [
+      {
+        role: "system",
+        content: `${process.env.AI_INSTRUCTIONS}. Your task now is to: Generate discussion points from the provided text.`,
+      },
+      {
+        role: "user",
+        content: documentText,
+      },
+    ],
   });
-  const result = await chatSession.sendMessage(documentText);
-  return result.response.text();
+
+  const response = completion.choices[0]?.message?.content?.trim();
+  if (!response) {
+    throw new Error("Failed to generate discussion points from Deepseek AI");
+  }
+
+  return response;
 };
 
 // In-memory store for conversation history per session
@@ -262,10 +318,15 @@ const isValidText = (text) => {
  * @returns {Promise<string>} - AI response message
  */
 exports.chatWithAI = async (sessionId, message, originalText) => {
-  const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
-  const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash",
-    systemInstruction: `${process.env.AI_INSTRUCTIONS}. Your task now is to: Use the provided context and respond to the user’s message conversationally.`,
+  // const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
+  // const model = genAI.getGenerativeModel({
+  //   model: "gemini-1.5-flash",
+  //   systemInstruction: `${process.env.AI_INSTRUCTIONS}. Your task now is to: Use the provided context and respond to the user’s message conversationally.`,
+  // });
+
+  const client = new OpenAI({
+    apiKey: process.env.DEEPSEEK_API_KEY,
+    baseURL: process.env.DEEPSEEK_URL,
   });
 
   // Initialize the conversation history if not present
@@ -279,7 +340,7 @@ exports.chatWithAI = async (sessionId, message, originalText) => {
   // Ensure the originalText is valid for the first message
   if (history.length === 0 && isValidText(originalText)) {
     // Add the original context as the first message from the user
-    history.push({ role: "user", parts: [{ text: originalText }] });
+    history.push({ role: "user", content: originalText });
   }
 
   // Ensure the user message is valid
@@ -288,29 +349,41 @@ exports.chatWithAI = async (sessionId, message, originalText) => {
   }
 
   // Add the user message to history
-  history.push({ role: "user", parts: [{ text: message }] });
+  history.push({ role: "user", content: message });
 
   try {
     // Start AI chat session using the accumulated history
-    const chatSession = model.startChat({
-      history: history, // Pass the conversation history
+    // const chatSession = model.startChat({
+    //   history: history, // Pass the conversation history
+    // });
+
+    // const result = await chatSession.sendMessage(message);
+
+    // // Ensure that the response contains valid text
+    // if (!result.response || !result.response.text) {
+    //   throw new Error("Failed to get response from the AI.");
+    // }
+
+    // // Add the AI's response to the conversation history
+    // history.push({ role: "model", parts: [{ text: result.response.text() }] });
+
+    // 填充历史上下文
+    const completion = await client.chat.completions.create({
+      model: "deepseek-chat",
+      messages: history,
     });
 
-    const result = await chatSession.sendMessage(message);
+    // 本次回答
+    const aiReply = completion.choices[0]?.message?.content?.trim();
 
-    // Ensure that the response contains valid text
-    if (!result.response || !result.response.text) {
-      throw new Error("Failed to get response from the AI.");
-    }
-
-    // Add the AI's response to the conversation history
-    history.push({ role: "model", parts: [{ text: result.response.text() }] });
+    // 更新本次回答
+    history.push({ role: "assistant", content: aiReply });
 
     // Update the session history with the new conversation context
     sessionHistory[sessionId] = history;
 
     // Return the AI's response
-    return result.response.text();
+    return aiReply;
   } catch (error) {
     // Handle potential errors
     throw new Error("Failed to get AI response: " + error.message);
@@ -367,29 +440,71 @@ exports.verifyUserEmail = async (email) => {
  * @returns {Promise<{sentimentScore, description}>} - Sentiment analysis result
  */
 exports.analyzeSentiment = async (documentText) => {
-  const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
-  const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash",
-    systemInstruction: `${process.env.AI_INSTRUCTIONS}. Your task now is to: Analyze the sentiment of the provided text. Return the result as a JSON object with two properties: "score" between -1 (very negative) to +1 (very positive) and "description" as a brief summary of the sentiment.`,
+  // Old google generative AI
+  // const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
+  // const model = genAI.getGenerativeModel({
+  //   model: "gemini-1.5-flash",
+  //   systemInstruction: `${process.env.AI_INSTRUCTIONS}. Your task now is to: Analyze the sentiment of the provided text. Return the result as a JSON object with two properties: "score" between -1 (very negative) to +1 (very positive) and "description" as a brief summary of the sentiment.`,
+  // });
+
+  // const chatSession = model.startChat({
+  //   history: [{ role: "user", parts: [{ text: documentText }] }],
+  // });
+  // const result = await chatSession.sendMessage(documentText);
+
+  // if (!result.response || !result.response.text) {
+  //   throw new Error("Failed to perform sentiment analysis from the AI");
+  // }
+
+  // // Extract and parse the response text into JSON format
+  // try {
+  //   let responseText = result.response.text();
+
+  //   // Strip the ```json and ``` markers if they exist
+  //   responseText = responseText.replace(/```json|```/g, "").trim();
+
+  //   // Parse the cleaned JSON string
+  //   const response = JSON.parse(responseText);
+
+  //   return {
+  //     sentimentScore: response.score,
+  //     description: response.description,
+  //   };
+  // } catch (error) {
+  //   console.error("Error parsing sentiment response:", error);
+  //   throw new Error("Failed to parse sentiment analysis response");
+  // }
+
+  // Now Deepseek generative ai
+  const client = new OpenAI({
+    apiKey: process.env.DEEPSEEK_API_KEY,
+    baseURL: process.env.DEEPSEEK_URL,
   });
 
-  const chatSession = model.startChat({
-    history: [{ role: "user", parts: [{ text: documentText }] }],
-  });
-  const result = await chatSession.sendMessage(documentText);
-
-  if (!result.response || !result.response.text) {
-    throw new Error("Failed to perform sentiment analysis from the AI");
-  }
-
-  // Extract and parse the response text into JSON format
+  // 调用deepseek-chat 模型
   try {
-    let responseText = result.response.text();
+    const completion = await client.chat.completions.create({
+      model: "deepseek-chat",
+      messages: [
+        {
+          role: "system",
+          content: `${process.env.AI_INSTRUCTIONS}. 
+            Your task now is to: Analyze the sentiment of the provided text. 
+            Return the result as a JSON object with two properties: "score" between -1 (very negative) to +1 (very positive) 
+            and "description" as a brief summary of the sentiment.`,
+        },
+        {
+          role: "user",
+          content: documentText,
+        },
+      ],
+    });
 
-    // Strip the ```json and ``` markers if they exist
+    // get the raw response text
+    let responseText = completion.choices[0]?.message?.content?.trim();
+    // replace the response text
     responseText = responseText.replace(/```json|```/g, "").trim();
-
-    // Parse the cleaned JSON string
+    // parse the response text
     const response = JSON.parse(responseText);
 
     return {
@@ -408,22 +523,47 @@ exports.analyzeSentiment = async (documentText) => {
  * @returns {Promise<string>} - Generated bullet point summary
  */
 exports.generateBulletSummary = async (documentText) => {
-  const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
-  const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash",
-    systemInstruction: `${process.env.AI_INSTRUCTIONS}. Your task now is to: Summarize the provided document text in bullet points.`,
+  // const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
+  // const model = genAI.getGenerativeModel({
+  //   model: "gemini-1.5-flash",
+  //   systemInstruction: `${process.env.AI_INSTRUCTIONS}. Your task now is to: Summarize the provided document text in bullet points.`,
+  // });
+
+  // const chatSession = model.startChat({
+  //   history: [{ role: "user", parts: [{ text: documentText }] }],
+  // });
+  // const result = await chatSession.sendMessage(documentText);
+
+  // if (!result.response || !result.response.text) {
+  //   throw new Error("Failed to generate bullet point summary from the AI");
+  // }
+
+  // return result.response.text();
+  const client = new OpenAI({
+    apiKey: process.env.DEEPSEEK_API_KEY,
+    baseURL: process.env.DEEPSEEK_URL,
   });
 
-  const chatSession = model.startChat({
-    history: [{ role: "user", parts: [{ text: documentText }] }],
+  const completion = await client.chat.completions.create({
+    model: "deepseek-chat",
+    messages: [
+      {
+        role: "system",
+        content: `${process.env.AI_INSTRUCTIONS}. Your task now is to: Summarize the provided document text in bullet points.`,
+      },
+      {
+        role: "user",
+        content: documentText,
+      },
+    ],
   });
-  const result = await chatSession.sendMessage(documentText);
 
-  if (!result.response || !result.response.text) {
-    throw new Error("Failed to generate bullet point summary from the AI");
+  const response = completion.choices[0]?.message?.content?.trim();
+  if (!response) {
+    throw new Error("Failed to generate bullet points from Deepseek AI");
   }
 
-  return result.response.text();
+  return response;
 };
 
 /**

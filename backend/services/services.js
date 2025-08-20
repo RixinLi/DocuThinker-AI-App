@@ -573,22 +573,50 @@ exports.generateBulletSummary = async (documentText) => {
  * @returns {Promise<string>} - Generated summary in the specified language
  */
 exports.generateSummaryInLanguage = async (documentText, language) => {
-  const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
-  const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash",
-    systemInstruction: `${process.env.AI_INSTRUCTIONS}. Your task now is to: Summarize the given text in ${language}.`,
+  // const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
+  // const model = genAI.getGenerativeModel({
+  //   model: "gemini-1.5-flash",
+  //   systemInstruction: `${process.env.AI_INSTRUCTIONS}. Your task now is to: Summarize the given text in ${language}.`,
+  // });
+
+  // const chatSession = model.startChat({
+  //   history: [{ role: "user", parts: [{ text: documentText }] }],
+  // });
+  // const result = await chatSession.sendMessage(documentText);
+
+  // if (!result.response || !result.response.text) {
+  //   throw new Error("Failed to generate translated summary from the AI");
+  // }
+
+  // return result.response.text();
+
+  const client = new OpenAI({
+    apiKey: process.env.DEEPSEEK_API_KEY,
+    baseURL: process.env.DEEPSEEK_URL,
   });
 
-  const chatSession = model.startChat({
-    history: [{ role: "user", parts: [{ text: documentText }] }],
+  const completion = await client.chat.completions.create({
+    model: "deepseek-chat",
+    messages: [
+      {
+        role: "system",
+        content: `${process.env.AI_INSTRUCTIONS}. Your task now is to: Summarize the given text in ${language}.`,
+      },
+      {
+        role: "user",
+        content: documentText,
+      },
+    ],
   });
-  const result = await chatSession.sendMessage(documentText);
 
-  if (!result.response || !result.response.text) {
-    throw new Error("Failed to generate translated summary from the AI");
+  const response = completion.choices[0]?.message?.content?.trim();
+  if (!response) {
+    throw new Error(
+      `Failed to summarize for the given text in ${language} from Deepseek AI`
+    );
   }
 
-  return result.response.text();
+  return response;
 };
 
 /**
@@ -598,22 +626,47 @@ exports.generateSummaryInLanguage = async (documentText, language) => {
  * @returns {Promise<string>} - Rewritten content in the specified style
  */
 exports.rewriteContent = async (documentText, style) => {
-  const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
-  const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash",
-    systemInstruction: `${process.env.AI_INSTRUCTIONS}. Your task now is to: Rephrase or rewrite the provided text in a ${style} style.`,
+  // const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
+  // const model = genAI.getGenerativeModel({
+  //   model: "gemini-1.5-flash",
+  //   systemInstruction: `${process.env.AI_INSTRUCTIONS}. Your task now is to: Rephrase or rewrite the provided text in a ${style} style.`,
+  // });
+  // const chatSession = model.startChat({
+  //   history: [{ role: "user", parts: [{ text: documentText }] }],
+  // });
+  // const result = await chatSession.sendMessage(documentText);
+  // if (!result.response || !result.response.text) {
+  //   throw new Error("Failed to rewrite content using the AI");
+  // }
+  // return result.response.text();
+
+  const client = new OpenAI({
+    apiKey: process.env.DEEPSEEK_API_KEY,
+    baseURL: process.env.DEEPSEEK_URL,
   });
 
-  const chatSession = model.startChat({
-    history: [{ role: "user", parts: [{ text: documentText }] }],
+  const completion = await client.chat.completions.create({
+    model: "deepseek-chat",
+    messages: [
+      {
+        role: "system",
+        content: `${process.env.AI_INSTRUCTIONS}. Your task now is to: Rephrase or rewrite the provided text in a ${style} style.`,
+      },
+      {
+        role: "user",
+        content: documentText,
+      },
+    ],
   });
-  const result = await chatSession.sendMessage(documentText);
 
-  if (!result.response || !result.response.text) {
-    throw new Error("Failed to rewrite content using the AI");
+  const response = completion.choices[0]?.message?.content?.trim();
+  if (!response) {
+    throw new Error(
+      `Failed to Rephrase or rewrite the provided text in a ${style} style.`
+    );
   }
 
-  return result.response.text();
+  return response;
 };
 
 /**
@@ -622,24 +675,54 @@ exports.rewriteContent = async (documentText, style) => {
  * @returns {Promise<string>} - Generated actionable recommendations
  */
 exports.generateActionableRecommendations = async (documentText) => {
-  const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
-  const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash",
-    systemInstruction: `${process.env.AI_INSTRUCTIONS}. Your task now is to: Generate actionable recommendations or next steps based on the provided text. Focus on identifying follow-up actions, decisions to be made, or critical takeaways.`,
+  // const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
+  // const model = genAI.getGenerativeModel({
+  //   model: "gemini-1.5-flash",
+  //   systemInstruction: `${process.env.AI_INSTRUCTIONS}. Your task now is to: Generate actionable recommendations or next steps based on the provided text. Focus on identifying follow-up actions, decisions to be made, or critical takeaways.`,
+  // });
+
+  // const chatSession = model.startChat({
+  //   history: [{ role: "user", parts: [{ text: documentText }] }],
+  // });
+  // const result = await chatSession.sendMessage(documentText);
+
+  // if (!result.response || !result.response.text) {
+  //   throw new Error(
+  //     "Failed to generate actionable recommendations using the AI"
+  //   );
+  // }
+
+  // return result.response.text();
+
+  const client = new OpenAI({
+    apiKey: process.env.DEEPSEEK_API_KEY,
+    baseURL: process.env.DEEPSEEK_URL,
   });
 
-  const chatSession = model.startChat({
-    history: [{ role: "user", parts: [{ text: documentText }] }],
+  const completion = await client.chat.completions.create({
+    model: "deepseek-chat",
+    messages: [
+      {
+        role: "system",
+        content: `${process.env.AI_INSTRUCTIONS}. 
+        Your task now is to: Generate actionable recommendations or next steps based on the provided text. 
+        Focus on identifying follow-up actions, decisions to be made, or critical takeaways.`,
+      },
+      {
+        role: "user",
+        content: documentText,
+      },
+    ],
   });
-  const result = await chatSession.sendMessage(documentText);
 
-  if (!result.response || !result.response.text) {
+  const response = completion.choices[0]?.message?.content?.trim();
+  if (!response) {
     throw new Error(
-      "Failed to generate actionable recommendations using the AI"
+      `Failed to generate actionable Recommendations from deepseek.`
     );
   }
 
-  return result.response.text();
+  return response;
 };
 
 /**
@@ -649,29 +732,58 @@ exports.generateActionableRecommendations = async (documentText) => {
  * @returns {Promise<string>} - Refined summary based on the instructions
  */
 exports.refineSummary = async (summary, refinementInstructions) => {
-  const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
-  const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash",
-    systemInstruction: `${process.env.AI_INSTRUCTIONS}. Your task now is to: Refine the provided summary based on the user's instructions.`,
+  // const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
+  // const model = genAI.getGenerativeModel({
+  //   model: "gemini-1.5-flash",
+  //   systemInstruction: `${process.env.AI_INSTRUCTIONS}. Your task now is to: Refine the provided summary based on the user's instructions.`,
+  // });
+
+  // // Combine the user input into a single prompt
+  // const refinementPrompt = `
+  //   Summary: ${summary}
+  //   Refinement Instructions: ${refinementInstructions}
+  //   Please refine the summary as per the instructions.`;
+
+  // const chatSession = model.startChat({
+  //   history: [{ role: "user", parts: [{ text: refinementPrompt }] }],
+  // });
+
+  // const result = await chatSession.sendMessage(refinementPrompt);
+
+  // if (!result.response || !result.response.text) {
+  //   throw new Error("Failed to refine the summary using the AI");
+  // }
+
+  // return result.response.text();
+
+  const client = new OpenAI({
+    apiKey: process.env.DEEPSEEK_API_KEY,
+    baseURL: process.env.DEEPSEEK_URL,
   });
 
-  // Combine the user input into a single prompt
-  const refinementPrompt = `
-    Summary: ${summary}
-    Refinement Instructions: ${refinementInstructions}
-    Please refine the summary as per the instructions.`;
+  const delimiter = "######";
 
-  const chatSession = model.startChat({
-    history: [{ role: "user", parts: [{ text: refinementPrompt }] }],
+  const completion = await client.chat.completions.create({
+    model: "deepseek-chat",
+    messages: [
+      {
+        role: "system",
+        content: `${process.env.AI_INSTRUCTIONS}. Your task now is to: Refine the provided summary based on the user's instructions.`,
+      },
+      {
+        role: "user",
+        content: `Summary: ${summary} ${delimiter} Refinement Instructions: ${refinementInstructions} ${delimiter}
+       Please refine the summary as per the instructions.`,
+      },
+    ],
   });
 
-  const result = await chatSession.sendMessage(refinementPrompt);
-
-  if (!result.response || !result.response.text) {
-    throw new Error("Failed to refine the summary using the AI");
+  const response = completion.choices[0]?.message?.content?.trim();
+  if (!response) {
+    throw new Error(`Failed to refine summary from deepseek.`);
   }
 
-  return result.response.text();
+  return response;
 };
 
 // Export endpoints to be used in server routes

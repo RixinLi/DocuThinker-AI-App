@@ -9,6 +9,9 @@ onnxruntime>=1.14.0
 
 # Optional: Hugging Face Optimum for enhanced ONNX support
 optimum[onnxruntime]>=1.12.0
+optimum[exporters]
+sentencepiece>=0.1.99
+accelerate #reduce onnx storage
 
 # For environment variable management (optional)
 python-dotenv>=0.21.0

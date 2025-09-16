@@ -4,7 +4,7 @@ MODEL_NAMES = {
     "qa": "distilbert-base-cased-distilled-squad",
     "discussion": "gpt2",
     "rag": "facebook/rag-token-nq",
-    "topic_extractor": "facebook/bart-large-mnli",
+    "topic_extractor": "facebook/bart-large-mnli"
     # DistilBERT sentiment model is loaded in hf_model.py
 }
 

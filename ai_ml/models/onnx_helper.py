@@ -20,6 +20,8 @@ def check_onnx_model_exists(model_path: str) -> bool:
     Returns:
       bool: True if the 'model.onnx' file exists, False otherwise.
     """
+
+    
     onnx_file = os.path.join(model_path, "model.onnx")
     return os.path.exists(onnx_file)
 

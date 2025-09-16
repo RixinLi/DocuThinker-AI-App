@@ -12,6 +12,7 @@ def run_conversion(model_name, task, output_dir):
         sys.executable, "-m", "optimum.exporters.onnx",
         "--model", model_name,
         "--task", task,
+        "--use_cache",   # 帮助hugging face使用缓存
         output_dir
     ]
     print("Running command:", " ".join(command))
